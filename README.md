@@ -92,4 +92,4 @@ layout, and the hallway rule in `detect.py` if your rooms do not all open onto o
   attribution clause). Built with PriorLabs-TabPFN.
 - Gemma 4 by Google: open weights, used under their licence terms and not redistributed here.
 - llama.cpp: MIT.
-- Built with help from an AI coding assistant (Anthropic Claude).
+- The code and this README were produced with Claude, Anthropic's AI agent.
