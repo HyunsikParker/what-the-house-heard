@@ -1,0 +1,5 @@
+tabpfn==2.0.9
+numpy
+pandas
+scikit-learn
+torch

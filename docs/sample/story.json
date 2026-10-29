@@ -1,0 +1,24 @@
+{
+ "evidence": "Night of 2026-10-31. Two residents went to bed before midnight, and the bedroom looked occupied all night. The door sensor reports only open or closed.\n- 00:51 to 01:10, living room: a resident came through the hallway and stayed (explained).\n- 02:00 to 02:03, kitchen: a resident came through the hallway and stayed (explained).\n- 02:47 to 02:55, living room: nobody crossed the hallway to get there, yet the room reads as occupied. CO2 up 45.6 ppm. Light at most 1.4 lux. Sound up to 53.5 dBA. Humidity up to 46.7%. 7 motion triggers.\n- 03:12 to 03:19, kitchen: nobody crossed the hallway to get there, yet the room reads as occupied. CO2 up 99.3 ppm. Light at most 82.3 lux. Sound up to 45.3 dBA. Humidity up to 51.7%. 7 motion triggers.\n- 03:33, hallway: the front door contact opened and the hallway motion sensor saw nothing.",
+ "story": "You lie in the dark, listening to the rhythmic breathing of your partner beside you. The house is silent until the sensors begin to betray your sanctuary. At 02:47, something moves in the living room despite no one leaving the bedroom. You hear a disturbance, a sound reaching 53.5 dBA, while the humidity climbs to 46.7%. The CO2 rises by 45.6 ppm as seven distinct motion triggers register in the shadows. You stay frozen, eyes wide, as the presence shifts. By 03:12, the kitchen is occupied. Again, no one traveled the hallway, yet the air thickens with a CO2 rise of 99.3 ppm. You hear another noise, peaking at 45.3 dBA, while the humidity reaches 51.7%. The motion triggers repeat, a frantic dance in the kitchen. Then, at 03:33, the front door clicks open. The hallway sensor remains empty, showing nothing passed through the corridor to reach the entrance. Something is inside the house with you, and it just let itself in from the outside without walking past your door.\n\nThe boring explanation: A faulty sensor or a small pest is moving through the walls and vents, while a neighbor may have briefly propped the door open.",
+ "seconds": 26.5,
+ "check": {
+  "times_quoted": 3,
+  "times_not_in_evidence": [],
+  "readings_quoted": 6,
+  "readings_not_in_evidence": [],
+  "ok": true
+ },
+ "attempts": [
+  {
+   "seed": 31,
+   "check": {
+    "times_quoted": 3,
+    "times_not_in_evidence": [],
+    "readings_quoted": 6,
+    "readings_not_in_evidence": [],
+    "ok": true
+   }
+  }
+ ]
+}
