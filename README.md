@@ -3,7 +3,7 @@
 A smart home records a lot at night: CO₂, light, sound, motion, the front door. What the House Heard reads one night of
 those logs on your own computer and asks a plain question: who was in which room, minute by minute? Anything that looks
 like a person in a room nobody walked to gets flagged. A local Gemma model then tells the night back as a short ghost
-story, and a fact check makes sure every time and reading in the story comes from the logs.
+story. A numeric check compares its clock times and number–unit pairs with the event evidence.
 
 **Built with PriorLabs-TabPFN.** Made for the DEV Hacktoberfest Open-Source AI Challenge, Week 4: Ghost in the Machine.
 **All data in this repository is synthetic** (see `simulate.py`).
@@ -19,11 +19,13 @@ story, and a fact check makes sure every time and reading in the story comes fro
 2. `detect.py` gives TabPFN v2 a 3,000-row sample of the labelled nights as context (no training loop) and asks it for
    the probability that each room was occupied in each minute of Halloween night. An event counts as unexplained when
    a room looks occupied for at least two minutes, nobody crossed the hallway in the three minutes before, and the
-   bedroom still looks occupied. The front-door contact opening with no hallway motion is flagged too.
+   bedroom still looks occupied. A separate rule flags the front-door contact opening with no hallway motion; that
+   branch uses the raw sensors, not TabPFN occupancy probabilities.
 3. `narrate.py` turns the events into a short evidence list and sends it to Gemma 4 through llama.cpp's local server.
    The story comes back and is checked: every clock time must fall inside an event, and every reading quoted with a
-   unit (ppm, lux, dBA, %) must match the evidence with the same unit. A story that fails is rewritten with the next
-   seed, up to four times.
+   unit (ppm, lux, dBA, %) must match a value–unit pair in the evidence. The numeric parser keeps signs, thousands
+   groups and exponents together, so it cannot mistake the end of `1,045.6 ppm` for `45.6 ppm`. A story that fails
+   is rewritten with the next seed, up to four times.
 4. `report.py` puts the timeline, the evidence, the story and the check on one self-contained HTML page.
 
 ## Run it
@@ -48,12 +50,22 @@ python report.py out/events.json out/story.json out/report.html
 the CPU (two TabPFN fits: a held-out check and the real night) and one story takes 25 to 45 seconds at about 8.7 tokens
 per second. `docs/sample/` has the outputs of the run shown above.
 
+## Test the numeric check
+
+```bash
+python3 -m unittest -v test_narrate
+```
+
+These 10 regression tests use only the Python standard library and the saved synthetic sample. They need no model
+weights, server or network. They cover signed values, thousands groups, exponents, wrong units, times outside the
+events and the original sample story.
+
 ## What it found on the synthetic Halloween night
 
 - Held-out check: given six labelled nights, TabPFN labelled every room-minute of the seventh correctly (balanced
   accuracy 1.00). Simulated sensors are cleaner than real ones, so read this as "the pipeline works", not as a promise
   for a real home.
-- It flagged exactly the three injected events: the living room at 02:47 (dark, CO₂ up 45.6 ppm, 53.5 dBA, seven
+- The combined model-and-rule detector flagged exactly the three injected events: the living room at 02:47 (dark, CO₂ up 45.6 ppm, 53.5 dBA, seven
   motion triggers), the kitchen at 03:12 (light on, CO₂ up 99.3 ppm), and the front door at 03:33 with no motion in the
   hallway.
 - It did not flag the things that only look strange: a resident who sat in the dark living room from 00:51 and another
@@ -78,8 +90,9 @@ layout, and the hallway rule in `detect.py` if your rooms do not all open onto o
 ## Limits
 
 - Everything here runs on simulated data. Real sensors drift, drop out and disagree.
-- The fact check covers clock times and readings with units. It does not catch every flourish: a story may still say
-  the door "clicks", although a contact sensor records no sound.
+- The numeric check uses a global list of event times and number–unit pairs. It does not bind each reading to the
+  correct room, event or sentence, so a kitchen reading attributed to the living room can pass. It also does not
+  catch every flourish: a story may still say the door "clicks", although a contact sensor records no sound.
 - The unexplained-event rule assumes this flat's layout (every room opens onto the hallway, the residents sleep in the
   bedroom).
 - We used TabPFN v2 because its weights run offline without an account. Prior Labs recommends TabPFN-3.5; it uses the
@@ -93,3 +106,4 @@ layout, and the hallway rule in `detect.py` if your rooms do not all open onto o
 - Gemma 4 by Google: open weights, used under their licence terms and not redistributed here.
 - llama.cpp: MIT.
 - The code and this README were produced with Claude, Anthropic's AI agent.
+- Codex corrected the numeric parser, added its regression tests and clarified this README on October 31, 2026.

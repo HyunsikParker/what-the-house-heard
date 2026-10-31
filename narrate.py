@@ -8,6 +8,7 @@ Start llama.cpp's server first, for example:
 Nothing leaves the machine: the request goes to localhost.
 """
 import argparse
+from decimal import Decimal
 import json
 import re
 import time
@@ -62,6 +63,18 @@ def ask(url, story_prompt, seed, tries=60):
 
 
 UNITS = {"co2_change_ppm": "ppm", "light_max_lux": "lux", "sound_max_dba": "dBA", "humidity_max_pct": "%"}
+# Capture the whole numeric token, including malformed punctuation, so a suffix
+# such as "045.6" in "1,045.6" cannot pass as a different measurement.
+READING = re.compile(r"(?<![\w.,+\-−])([+\-−]?(?:\d[\d.,eE+\-−]*|\.\d[\d.,eE+\-−]*))\s*(ppm|lux|dBA|%)(?![A-Za-z])")
+NUMBER = re.compile(r"[+-]?(?:(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\Z")
+
+
+def reading_value(raw):
+    """Parse a complete signed decimal, with optional thousands groups/exponent."""
+    raw = raw.replace("−", "-")
+    if not NUMBER.fullmatch(raw):
+        return None
+    return Decimal(raw.replace(",", ""))
 
 
 def check(story, report):
@@ -74,11 +87,12 @@ def check(story, report):
         allowed_times.add(e["end"])
         for key, unit in UNITS.items():
             if key in e:
-                allowed_readings.add((f"{e[key]:g}", unit))
+                allowed_readings.add((Decimal(str(e[key])), unit))
     times = re.findall(r"\b\d{1,2}:\d{2}\b", story)
     bad_times = [t for t in times if t.zfill(5) not in allowed_times]
-    readings = [(f"{float(v):g}", u) for v, u in re.findall(r"\b(\d+(?:\.\d+)?)\s*(ppm|lux|dBA|%)", story)]
-    bad_readings = [f"{v} {u}" for v, u in readings if (v, u) not in allowed_readings]
+    readings = READING.findall(story)
+    bad_readings = [f"{raw} {unit}" for raw, unit in readings
+                    if (reading_value(raw), unit) not in allowed_readings]
     return {"times_quoted": len(times), "times_not_in_evidence": bad_times, "readings_quoted": len(readings),
             "readings_not_in_evidence": bad_readings, "ok": not bad_times and not bad_readings and len(readings) >= 3}
 
